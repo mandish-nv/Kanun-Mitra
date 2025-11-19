@@ -1,63 +1,68 @@
 import streamlit as st
 import os
 import tempfile
+import rag_backend  # Importing the logic file
 
-from langchain_community.embeddings import HuggingFaceEmbeddings
-# Import the Qdrant configuration and the ingestion function from the service file
-from qdrant_service import ingest_documents_to_qdrant, QDRANT_CONFIG
-
-# --- Embedding Model Caching ---
-# Use the HuggingFaceEmbeddings wrapper for sentence-transformers/all-MiniLM-L6-v2
-@st.cache_resource
-def get_dense_embedding_model():
-    """Loads and caches the Hugging Face Sentence Transformer model."""
-    # Note: Using 'cpu' for wider compatibility
-    return HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2",
-        model_kwargs={'device': 'cpu'},
-        encode_kwargs={'normalize_embeddings': True}
-    )
-
-## --- Streamlit UI ---
-
-st.title("📚 PDF Ingestion to Qdrant Vector Store")
-st.markdown("Uses `sentence-transformers/all-MiniLM-L6-v2` and LangChain/Qdrant.")
-
-# Load the model once
-embedding_model = get_dense_embedding_model()
-
-# Display configuration in the sidebar
-st.sidebar.markdown(f"**Loaded Embedding Model:** `sentence-transformers/all-MiniLM-L6-v2`")
-st.sidebar.markdown(f"**Vector Size:** {QDRANT_CONFIG['VECTOR_SIZE']}")
-st.sidebar.markdown(f"**Qdrant Endpoint:** {QDRANT_CONFIG['QDRANT_HOST']}:{QDRANT_CONFIG['QDRANT_PORT']}")
-st.sidebar.markdown(f"**Target Collection:** {QDRANT_CONFIG['COLLECTION_NAME']}")
-st.sidebar.markdown(f"**Chunk Size:** 500 tokens")
-
-
-uploaded_file = st.file_uploader(
-    "**1. Upload a PDF Document**",
-    type="pdf"
+# Set page configuration
+st.set_page_config(
+    page_title="Qdrant RAG Chat",
+    page_icon="🤖",
+    layout="wide"
 )
 
-if uploaded_file is not None:
-    # Use a temporary file to save the uploaded PDF for PyPDFLoader
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-        tmp_file.write(uploaded_file.getvalue())
-        tmp_file_path = tmp_file.name
-        
-    st.subheader(f"Processing File: **{uploaded_file.name}**")
-    
-    if st.button("🚀 Ingest & Embed"):
-        # Call the separated Qdrant service function
-        ingest_documents_to_qdrant(tmp_file_path, embedding_model)
-        
-    # Clean up the temporary file (handled within the Streamlit run cycle)
-    try:
-        if os.path.exists(tmp_file_path):
-            os.remove(tmp_file_path)
-    except:
-        # Ignore errors during cleanup to keep the app running smoothly
-        pass 
+def main():
+    st.title("🤖 PDF RAG with Qdrant & Gemini")
+    st.markdown("Upload a PDF, process it into the Vector DB, and ask questions based on its content.")
 
-else:
-    st.info("Please upload a PDF file to begin the ingestion process.")
+    # --- SIDEBAR: CONFIG & UPLOAD ---
+    with st.sidebar:
+        st.header("Configuration")
+        
+        # PDF Uploader
+        st.subheader("1. Upload Document")
+        uploaded_file = st.file_uploader("Choose a PDF file", type=["pdf"])
+
+        # Process Button
+        if uploaded_file is not None:
+            if st.button("Process / Ingest PDF"):
+                with st.spinner("Processing PDF..."):
+                    # Save uploaded file to a temporary file because PyPDFLoader needs a path
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+                        tmp_file.write(uploaded_file.getvalue())
+                        tmp_path = tmp_file.name
+                    
+                    try:
+                        # Call the backend ingestion function
+                        rag_backend.ingest_documents_to_qdrant(tmp_path)
+                    finally:
+                        # Cleanup temp file
+                        os.remove(tmp_path)
+
+    # --- MAIN AREA: CHAT INTERFACE ---
+    st.divider()
+    st.subheader("2. Ask Questions")
+    
+    user_query = st.text_input("Enter your question here:", placeholder="What is this document about?")
+
+    if st.button("Ask Gemini"):
+        if user_query:
+            with st.spinner("Thinking..."):
+                # Call the backend query function
+                answer, docs = rag_backend.query_qdrant_rag(user_query)
+            
+            # Display Answer
+            st.markdown("### Answer:")
+            st.write(answer)
+            
+            # Display Sources in an Expander
+            if docs:
+                with st.expander("View Source Documents"):
+                    for i, doc in enumerate(docs):
+                        st.markdown(f"**Source {i+1}:**")
+                        st.text(doc.page_content)
+                        st.divider()
+        else:
+            st.warning("Please enter a question first.")
+
+if __name__ == "__main__":
+    main()
