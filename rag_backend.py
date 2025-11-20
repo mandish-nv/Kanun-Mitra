@@ -93,8 +93,6 @@ def ingest_documents_to_qdrant(pdf_path):
 
         embeddings_model = get_embeddings_model()
 
-        # FIX: Use direct Constructor + add_documents
-        # This avoids the 'missing path' error in from_documents/from_existing_collection
         vector_store = Qdrant(
             client=client,
             collection_name=COLLECTION_NAME,
@@ -162,6 +160,7 @@ def query_qdrant_rag(user_query: str):
             metadata = point.payload.get("metadata", {})
             retrieved_docs.append(Document(page_content=content, metadata=metadata))
 
+        # This logic joins the retrieved data into a context string
         context = "\n---\n".join(doc.page_content for doc in retrieved_docs)
         st.success("Retrieved relevant document chunks.")
 
@@ -170,11 +169,13 @@ def query_qdrant_rag(user_query: str):
         return f"Search error: {e}", []
 
     # LLM Query
+    # This is the System Prompt
     system_instruction = (
         "You are an expert Q&A model. Only answer using the provided CONTEXT. "
         "If the answer is not in the context, say so clearly."
     )
 
+    # This is where the retrieved data (context) is sent to the LLM
     prompt = f"CONTEXT:\n{context}\n\nQUESTION: {user_query}"
 
     payload = {

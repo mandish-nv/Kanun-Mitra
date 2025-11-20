@@ -1,0 +1,8 @@
+streamlit
+requests
+python-dotenv
+langchain-community
+langchain-core
+pypdf
+qdrant-client
+sentence-transformers
