@@ -1,4 +1,4 @@
-### PDF RAG with Qdrant & Gemini
+### Docx-Query-RAG
 
 This project is a modular Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents, index their content into a Qdrant vector database, and ask questions using the Google Gemini LLM.
 
