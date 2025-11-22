@@ -1,2 +1,4 @@
 data
 .env
+__pycache__
+notes.txt

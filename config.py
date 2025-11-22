@@ -1,7 +1,8 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+from fastembed import SparseTextEmbedding
 
 # Load environment variables
 load_dotenv()
@@ -10,28 +11,61 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # ---------------- QDRANT CONFIG ----------------
-COLLECTION_NAME = "pdf_rag_collection"
+COLLECTION_NAME = "pdf_rag_hybrid_collection"
 QDRANT_HOST = "localhost"
 QDRANT_PORT = 6333
 QDRANT_URL = f"http://{QDRANT_HOST}:{QDRANT_PORT}"
-VECTOR_SIZE = 384  # for all-MiniLM-L6-v2
+
+# Dense Configuration (all-MiniLM-L6-v2)
+VECTOR_SIZE = 384 
+DENSE_VECTOR_NAME = "dense_vector"
+
+# Sparse Configuration (SPLADE)
+# supported_models = SparseTextEmbedding.list_supported_models()
+SPARSE_MODEL_NAME = "prithivida/Splade_PP_en_v1"
+SPARSE_VECTOR_NAME = "sparse_vector"
 
 # ---------------- LLM CONFIG ----------------
 LLM_MODEL = "gemini-2.5-flash"
 LLM_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{LLM_MODEL}:generateContent"
 
-# ---------------- EMBEDDINGS MODEL ----------------
-# Singleton pattern to avoid reloading the model on every import
-_EMBEDDINGS_MODEL = None
+# ---------------- SYSTEM PROMPTS ----------------
+RAG_SYSTEM_PROMPT = """
+You are an expert AI assistant capable of answering questions based strictly on the provided context.
+1. ANALYZE the Context provided below carefully.
+2. SYNTHESIZE an answer that addresses the User Query.
+3. CITE specific parts of the context if applicable (e.g., "According to page 2...").
+4. If the answer is NOT in the context, explicitly state: "I cannot find the answer in the provided document."
+"""
 
-def get_embeddings_model():
-    """Return the initialized embeddings model."""
-    global _EMBEDDINGS_MODEL
-    if _EMBEDDINGS_MODEL is None:
+QUERY_GEN_PROMPT = """
+You are a helpful assistant that generates search queries. 
+Generate 2 different search queries based on the user's question to improve retrieval from a vector database.
+Output ONLY the queries separated by a newline. Do not add numbering or explanation.
+"""
+
+# ---------------- EMBEDDINGS MODELS ----------------
+_DENSE_MODEL = None
+_SPARSE_MODEL = None
+
+def get_dense_model():
+    """Return the initialized Dense embeddings model (LangChain wrapper)."""
+    global _DENSE_MODEL
+    if _DENSE_MODEL is None:
         try:
-            # Using all-MiniLM-L6-v2 for efficient, lightweight embeddings
-            _EMBEDDINGS_MODEL = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+            _DENSE_MODEL = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         except Exception as e:
-            st.error(f"Error initializing HuggingFaceEmbeddings: {e}. Please ensure 'sentence-transformers' is installed.")
+            st.error(f"Error loading Dense Model: {e}")
             return None
-    return _EMBEDDINGS_MODEL
+    return _DENSE_MODEL
+
+def get_sparse_model():
+    """Return the initialized Sparse embeddings model (FastEmbed)."""
+    global _SPARSE_MODEL
+    if _SPARSE_MODEL is None:
+        try:
+            _SPARSE_MODEL = SparseTextEmbedding(model_name=SPARSE_MODEL_NAME)
+        except Exception as e:
+            st.error(f"Error loading Sparse Model (fastembed): {e}")
+            return None
+    return _SPARSE_MODEL

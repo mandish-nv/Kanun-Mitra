@@ -2,70 +2,74 @@ import streamlit as st
 import os
 import tempfile
 
-# Import the specific functions from the new modules
+# Import functions
 from ingestion_pipeline import ingest_documents_to_qdrant
 from rag_query import query_qdrant_rag
 
-# Set page configuration
-st.set_page_config(
-    page_title="Qdrant RAG Chat",
-    page_icon="🤖",
-    layout="wide"
-)
+st.set_page_config(page_title="Qdrant Hybrid RAG", page_icon="🧠", layout="wide")
 
 def main():
-    st.title("🤖 PDF RAG with Qdrant & Gemini")
-    st.markdown("Upload a PDF, process it into the Vector DB, and ask questions based on its content.")
+    st.title("🧠 Advanced Hybrid RAG (Dense + Sparse)")
+    st.markdown("""
+    **Features:** 1. Hybrid Search (Vector + Keyword/SPLADE) 
+    2. Query Expansion 
+    3. Metadata Indexing
+    """)
 
-    # --- SIDEBAR: CONFIG & UPLOAD ---
+    # --- SIDEBAR ---
     with st.sidebar:
         st.header("Configuration")
-        
-        # PDF Uploader
-        st.subheader("1. Upload Document")
-        uploaded_file = st.file_uploader("Choose a PDF file", type=["pdf"])
+        uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
 
-        # Process Button
         if uploaded_file is not None:
-            if st.button("Process / Ingest PDF"):
-                with st.spinner("Processing PDF..."):
-                    # Save uploaded file to a temporary file because PyPDFLoader needs a path
+            if st.button("Process Document"):
+                with st.spinner("Ingesting (Hybrid Mode)..."):
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
                         tmp_file.write(uploaded_file.getvalue())
                         tmp_path = tmp_file.name
                     
                     try:
-                        # Call the backend ingestion function from ingestion_pipeline.py
                         ingest_documents_to_qdrant(tmp_path)
                     finally:
-                        # Cleanup temp file
                         os.remove(tmp_path)
 
-    # --- MAIN AREA: CHAT INTERFACE ---
+    # --- CHAT ---
     st.divider()
-    st.subheader("2. Ask Questions")
     
-    user_query = st.text_input("Enter your question here:", placeholder="What is this document about?")
+    # Initialize chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-    if st.button("Ask Gemini"):
-        if user_query:
-            with st.spinner("Thinking..."):
-                # Call the backend query function from rag_query.py
+    # Display chat history
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # User Input
+    if user_query := st.chat_input("Ask a specific question about the document..."):
+        
+        # Add user message to chat
+        st.session_state.messages.append({"role": "user", "content": user_query})
+        with st.chat_message("user"):
+            st.markdown(user_query)
+
+        # Generate Response
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing vectors..."):
                 answer, docs = query_qdrant_rag(user_query)
-            
-            # Display Answer
-            st.markdown("### Answer:")
-            st.write(answer)
-            
-            # Display Sources in an Expander
-            if docs:
-                with st.expander("View Source Documents"):
-                    for i, doc in enumerate(docs):
-                        st.markdown(f"**Source {i+1}:**")
-                        st.text(doc.page_content)
-                        st.divider()
-        else:
-            st.warning("Please enter a question first.")
+                
+                st.markdown(answer)
+                
+                # Expandable Source Viewer
+                if docs:
+                    with st.expander("🔍 View Retrieved Context (Hybrid Results)"):
+                        for i, doc in enumerate(docs):
+                            st.markdown(f"**Rank {i+1} (Page {doc['page']}) [Score: {doc['score']:.3f}]**")
+                            st.text(doc['content'])
+                            st.divider()
+                            
+        # Add assistant message to chat
+        st.session_state.messages.append({"role": "assistant", "content": answer})
 
 if __name__ == "__main__":
     main()
