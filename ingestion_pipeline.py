@@ -2,7 +2,7 @@ import streamlit as st
 import uuid
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from qdrant_client import QdrantClient, models
+from qdrant_client import models
 import config
 
 def ingest_documents_to_qdrant(pdf_path):
@@ -10,12 +10,13 @@ def ingest_documents_to_qdrant(pdf_path):
     Processes PDF: Hybrid chunking, Sparse+Dense embedding, and manual Qdrant ingestion.
     """
     
-    # 1. Initialize Models
+    # 1. Initialize Models & Client
     dense_model = config.get_dense_model()
     sparse_model = config.get_sparse_model() 
+    client = config.get_qdrant_client() # Using cached client
 
-    if not dense_model or not sparse_model:
-        st.error("Embedding models not loaded. Ingestion cannot proceed.")
+    if not dense_model or not sparse_model or not client:
+        st.error("Resources not loaded. Ingestion cannot proceed.")
         return
 
     st.info("Starting Hybrid ingestion...")
@@ -33,15 +34,14 @@ def ingest_documents_to_qdrant(pdf_path):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=50,
-        length_function=len
+        length_function=len,
+        add_start_index=True # Helps preserve metadata order
     )
     chunks = splitter.split_documents(documents)
     st.info(f"Created {len(chunks)} content chunks.")
 
-    # 4. Prepare Qdrant Collection (Hybrid Config)
+    # 4. Prepare Qdrant Collection
     try:
-        client = QdrantClient(url=config.QDRANT_URL)
-
         if client.collection_exists(collection_name=config.COLLECTION_NAME):
             client.delete_collection(collection_name=config.COLLECTION_NAME)
             st.info(f"Recreating collection '{config.COLLECTION_NAME}'...")
@@ -75,31 +75,33 @@ def ingest_documents_to_qdrant(pdf_path):
         st.error(f"Qdrant initialization error: {e}")
         return
 
-    # 5. Vectorization & Point Creation
-    points = []
+    # 5. Vectorization
     texts = [doc.page_content for doc in chunks]
     
     with st.spinner("Generating Dense and Sparse embeddings..."):
-        # Dense
         dense_embeddings = dense_model.embed_documents(texts)
-        
-        # Sparse (CORRECTION: Added batch_size=32 to prevent Memory Error)
-        # The default batch_size=256 causes OOM with SPLADE models on some machines
         sparse_embeddings = list(sparse_model.embed(texts, batch_size=32))
 
     # 6. Construct Points
+    points = []
     for i, doc in enumerate(chunks):
         point_id = str(uuid.uuid4())
         
-        # Extract indices and values from FastEmbed sparse object
         sparse_vector = models.SparseVector(
             indices=sparse_embeddings[i].indices.tolist(),
             values=sparse_embeddings[i].values.tolist()
         )
 
+        # PyPDFLoader uses 0-based indexing. 
+        original_page = doc.metadata.get("page")
+        if original_page is not None:
+            page_num = int(original_page) + 1 
+        else:
+            page_num = 0 # Fallback
+
         payload = {
             "page_content": doc.page_content,
-            "page_number": doc.metadata.get("page", 0) + 1,
+            "page_number": page_num, 
             "source": doc.metadata.get("source", "unknown"),
             "chunk_index": i
         }

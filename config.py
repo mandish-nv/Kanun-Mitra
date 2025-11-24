@@ -3,6 +3,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
 from fastembed import SparseTextEmbedding
+from qdrant_client import QdrantClient #
 
 # Load environment variables
 load_dotenv()
@@ -21,7 +22,6 @@ VECTOR_SIZE = 384
 DENSE_VECTOR_NAME = "dense_vector"
 
 # Sparse Configuration (SPLADE)
-# supported_models = SparseTextEmbedding.list_supported_models()
 SPARSE_MODEL_NAME = "prithivida/Splade_PP_en_v1"
 SPARSE_VECTOR_NAME = "sparse_vector"
 
@@ -40,13 +40,22 @@ You are an expert AI assistant capable of answering questions based strictly on 
 
 QUERY_GEN_PROMPT = """
 You are a helpful assistant that generates search queries. 
-Generate 2 different search queries based on the user's question to improve retrieval from a vector database.
-Output ONLY the queries separated by a newline. Do not add numbering or explanation.
+Generate 3 specific, keyword-rich search queries based on the user's question to improve retrieval from a vector database.
+Output ONLY the query. Do not add numbering or explanation.
 """
 
-# ---------------- EMBEDDINGS MODELS ----------------
+# ---------------- CACHED RESOURCES ----------------
 _DENSE_MODEL = None
 _SPARSE_MODEL = None
+
+@st.cache_resource
+def get_qdrant_client():
+    """Return cached Qdrant Client instance."""
+    try:
+        return QdrantClient(url=QDRANT_URL)
+    except Exception as e:
+        st.error(f"Error connecting to Qdrant: {e}")
+        return None
 
 def get_dense_model():
     """Return the initialized Dense embeddings model (LangChain wrapper)."""

@@ -6,15 +6,15 @@ import tempfile
 from ingestion_pipeline import ingest_documents_to_qdrant
 from rag_query import query_qdrant_rag
 
-st.set_page_config(page_title="Qdrant Hybrid RAG", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Docx-Query-RAG", page_icon="🧠", layout="wide")
 
 def main():
-    st.title("🧠 Advanced Hybrid RAG (Dense + Sparse)")
-    st.markdown("""
-    **Features:** 1. Hybrid Search (Vector + Keyword/SPLADE) 
-    2. Query Expansion 
-    3. Metadata Indexing
-    """)
+    st.title("🧠 Docx-Query-RAG")
+    # st.markdown("""
+    # **Features:** 1. Hybrid Search (Vector + Keyword/SPLADE) 
+    # 2. Query Expansion & History 
+    # 3. Metadata Filtering (Page Number)
+    # """)
 
     # --- SIDEBAR ---
     with st.sidebar:
@@ -32,6 +32,13 @@ def main():
                         ingest_documents_to_qdrant(tmp_path)
                     finally:
                         os.remove(tmp_path)
+        
+        st.divider()
+        st.header("Search Filters")
+        use_filter = st.checkbox("Filter by Page Number")
+        page_filter = None
+        if use_filter:
+            page_filter = st.number_input("Target Page Number", min_value=1, value=1)
 
     # --- CHAT ---
     st.divider()
@@ -55,8 +62,13 @@ def main():
 
         # Generate Response
         with st.chat_message("assistant"):
-            with st.spinner("Analyzing vectors..."):
-                answer, docs = query_qdrant_rag(user_query)
+            with st.spinner("Processing query..."):
+                # Pass history and filter to backend
+                answer, docs = query_qdrant_rag(
+                    user_query=user_query, 
+                    chat_history=st.session_state.messages[:-1], # Exclude current query from history arg
+                    page_filter=page_filter
+                )
                 
                 st.markdown(answer)
                 
