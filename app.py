@@ -3,7 +3,7 @@ import os
 import tempfile
 
 from ingestion_pipeline import ingest_documents_to_qdrant
-from rag_query import run_rag_with_graph
+from rag_graph import run_rag_with_graph 
 
 st.set_page_config(page_title="Docx-Query-RAG", layout="wide")
 
@@ -45,23 +45,30 @@ def main():
 
         with st.chat_message("assistant"):
             with st.spinner("Processing..."):
-                answer, docs, timings = run_rag_with_graph(
+
+                answer, docs, timings, refined_queries = run_rag_with_graph(
                     user_query, 
                     st.session_state.messages[:-1]
                 )
 
                 st.markdown(answer)
 
-                # Timing Info
-                st.subheader("Timing Report (ms)")
-                st.json(timings)
+                # --- Transparency Section ---
+                with st.expander("Details: Query Refinement & Timing"):
+                    st.subheader("Generated Queries")
+                    if refined_queries:
+                        for q in refined_queries:
+                            st.text(f"- {q}")
+                    
+                    st.subheader("Timing Report (ms)")
+                    st.json(timings)
 
                 # Retrieved Context
                 if docs:
-                    with st.expander("Retrieved Context"):
-                        for d in docs:
-                            st.markdown(f"**Page {d['page']} — Score: {d['score']:.3f}**")
-                            st.text(d["content"])
+                    with st.expander("Retrieved Context (Top Re-ranked)"):
+                        for i, d in enumerate(docs):
+                            st.markdown(f"**{i+1}. Page {d['page']} — Re-rank Score: {d['score']:.4f}**")
+                            st.info(d["content"])
 
         st.session_state.messages.append({"role": "assistant", "content": answer})
 
