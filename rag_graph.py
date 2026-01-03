@@ -36,11 +36,11 @@ def retrieve_docs_node(state: dict) -> dict:
     """
     start = time.time()
 
-    # Pass the list of refined queries to the hybrid search function
     answer, docs = rag_query.query_qdrant_rag(
         user_query=state["user_query"],
         chat_history=state["chat_history"] or [],
-        refined_queries=state["refined_queries"]
+        refined_queries=state["refined_queries"],
+        collection_name=state.get("collection_name") 
     )
 
     state["answer"] = answer
@@ -81,7 +81,7 @@ rag_graph = build_rag_graph()
 
 # -------------------- EXECUTION WRAPPER --------------------
 
-def run_rag_with_graph(user_query: str, chat_history: list):
+def run_rag_with_graph(user_query: str, chat_history: list, collection_name: str = None):
     """
     Main entry point called by app.py.
     """
@@ -92,7 +92,8 @@ def run_rag_with_graph(user_query: str, chat_history: list):
         "answer": None,
         "retrieved_docs": None,
         "chat_history": chat_history,
-        "timings": {}
+        "timings": {},
+        "collection_name": collection_name # <--- Initialize in state
     }
 
     result_state = rag_graph.invoke(state)

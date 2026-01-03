@@ -100,7 +100,8 @@ def perform_hybrid_search(
     client, 
     dense_model, 
     sparse_model, 
-    page_filter: int = None
+    page_filter: int = None,
+    collection_name: str = None 
 ) -> List[Dict]:
     """
     Executes a single hybrid search (Dense + Sparse) for a given query.
@@ -145,8 +146,10 @@ def perform_hybrid_search(
         ]
 
         # 5. Execute Query
+        target_coll = collection_name or config.COLLECTION_NAME 
+
         results = client.query_points(
-            collection_name=config.COLLECTION_NAME,
+            collection_name=target_coll, 
             prefetch=prefetch,
             query=models.FusionQuery(fusion=models.Fusion.RRF),
             limit=20, 
@@ -221,7 +224,7 @@ def rerank_documents(query: str, docs: List[Dict], top_k: int) -> List[Dict]:
         return docs[:top_k]
 
 
-def query_qdrant_rag(user_query: str, chat_history: list, refined_queries: List[str] = None):
+def query_qdrant_rag(user_query: str, chat_history: list, refined_queries: List[str] = None, collection_name: str = None):
     """
     Main Orchestrator:
     1. Extract Filters
@@ -249,7 +252,7 @@ def query_qdrant_rag(user_query: str, chat_history: list, refined_queries: List[
     with ThreadPoolExecutor(max_workers=3) as executor:
         future_to_query = {
             executor.submit(
-                perform_hybrid_search, q, client_qdrant, dense_model, sparse_model, page_filter
+                perform_hybrid_search, q, client_qdrant, dense_model, sparse_model, page_filter, collection_name
             ): q for q in search_queries
         }
         

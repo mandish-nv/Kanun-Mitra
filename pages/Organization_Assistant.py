@@ -1,6 +1,7 @@
 import streamlit as st
 from rag_graph import run_rag_with_graph
 from utils.ui_components import init_page
+import config
 
 user_info = init_page("Organization Assistant")
 
@@ -37,7 +38,7 @@ if user_query := st.chat_input("Ask an organization's question..."):
     with st.chat_message("assistant"):
         with st.spinner("Analyzing context..."):
             answer, docs, timings, refined_queries = run_rag_with_graph(
-                user_query, st.session_state.organization_messages[:-1]
+                user_query, st.session_state.organization_messages[:-1], collection_name=config.ORGANIZATION_COLLECTION_NAME
             )
             st.markdown(answer)
             
