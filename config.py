@@ -27,7 +27,7 @@ VECTOR_SIZE = 384
 DENSE_VECTOR_NAME = "dense_vector"
 
 # Sparse Configuration (SPLADE)
-SPARSE_MODEL_NAME = "prithivida/Splade_PP_en_v1"
+SPARSE_MODEL_NAME = "Qdrant/bm25"
 SPARSE_VECTOR_NAME = "sparse_vector"
 
 # ---------------- RERANKING CONFIG ----------------
