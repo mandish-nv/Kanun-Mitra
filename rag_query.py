@@ -304,42 +304,49 @@ def query_qdrant_rag(user_query: str, chat_history: list, refined_queries: List[
 
 
 # ---------------- NEW RULE GENERATION FUNCTION ----------------
+# --- Update this function in rag_query.py ---
 
-def generate_compliant_rules(rule_context: str, custom_rules: str) -> Tuple[str, str, List[Dict]]:
+def generate_compliant_rules(rule_context_key: str, custom_rules: str) -> Tuple[str, str, List[Dict]]:
     """
-    1. Retrieve laws based on 'rule_context' and 'custom_rules'.
-    2. Generate rules combining custom inputs and laws.
-    3. Perform compliance check.
+    1. Refines query using industry mandatory rules.
+    2. Retrieves laws via Hybrid Search.
+    3. Generates a structured Rule Book.
     """
     dense_model = config.get_dense_model()
     sparse_model = config.get_sparse_model()
     client_qdrant = config.get_qdrant_client()
 
-    if not dense_model or not sparse_model or not client_qdrant:
-        return "Error: System resources not available.", "", []
+    # Get Industry Specific Mandates from config
+    industry_info = config.INDUSTRY_MANDATORY_RULES.get(rule_context_key, {})
+    mandatory_text = ", ".join(industry_info.get("mandates", []))
+    acts_text = ", ".join(industry_info.get("acts", []))
 
-    # 1. Retrieval: Use context and custom rules as query intent
-    query_intent = f"Rules, laws, and compliance regarding {rule_context} and {custom_rules}"
+    # 1. Refine the Query for Vector Search
+    # This combines context, mandatory rules, and user desires for high-intent retrieval
+    refined_search_query = (
+        f"Laws and regulations for {rule_context_key} regarding: {acts_text}. "
+        f"Specific requirements: {mandatory_text}. User needs: {custom_rules}"
+    )
     
-    # We do a direct hybrid search here (simplifying vs full RAG graph for this specific task)
-    raw_docs = perform_hybrid_search(query_intent, client_qdrant, dense_model, sparse_model)
-    
-    # Re-rank to ensure high relevance
-    final_docs = rerank_documents(query_intent, raw_docs, top_k=15)
+    # 2. Retrieval
+    raw_docs = perform_hybrid_search(refined_search_query, client_qdrant, dense_model, sparse_model)
+    final_docs = rerank_documents(refined_search_query, raw_docs, top_k=15)
     
     if not final_docs:
-        return "Could not find relevant laws in the database to base the rules on.", "N/A", []
+        return "Could not find relevant laws in the database.", "N/A", []
 
-    # Prepare Context String
     legal_context_str = "\n".join([f"[Page {d['page']}]: {d['content']}" for d in final_docs])
 
-    # 2. Rule Generation
+    # 3. Rule Generation (Structured Rule Book)
     gen_prompt = f"""
     LEGAL CONTEXT (from database):
     {legal_context_str}
 
-    USER CONTEXT (Organization Type): {rule_context}
-    USER CUSTOM RULES (Desired): {custom_rules}
+    ORGANIZATION TYPE: {rule_context_key}
+    MANDATORY INDUSTRY RULES TO INCLUDE: {mandatory_text}
+    USER CUSTOM DESIRES: {custom_rules}
+    
+    TASK: Generate a structured Rule Book following the Article/Chapter format.
     """
 
     def _gen_rules_call():
@@ -358,15 +365,9 @@ def generate_compliant_rules(rule_context: str, custom_rules: str) -> Tuple[str,
     except Exception as e:
         return f"Error generating rules: {e}", "", final_docs
 
-    # 3. Compliance Check
-    audit_prompt = f"""
-    LEGAL CONTEXT (from database):
-    {legal_context_str}
-
-    DRAFTED RULES:
-    {generated_rules}
-    """
-
+    # 4. Compliance Audit
+    audit_prompt = f"LEGAL CONTEXT:\n{legal_context_str}\n\nDRAFTED RULE BOOK:\n{generated_rules}"
+    
     def _audit_call():
         return client.models.generate_content(
             model=config.LLM_MODEL,
@@ -381,6 +382,6 @@ def generate_compliant_rules(rule_context: str, custom_rules: str) -> Tuple[str,
         audit_response = _execute_with_retry(_audit_call)
         compliance_report = audit_response.text
     except Exception as e:
-        compliance_report = f"Error performing compliance check: {e}"
+        compliance_report = f"Audit failed: {e}"
 
     return generated_rules, compliance_report, final_docs

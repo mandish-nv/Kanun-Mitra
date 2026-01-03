@@ -5,6 +5,7 @@ import tempfile
 from ingestion_pipeline import ingest_documents_to_qdrant
 from rag_graph import run_rag_with_graph 
 from rag_query import generate_compliant_rules 
+import config
 
 st.set_page_config(page_title="Docx-Query-RAG", layout="wide")
 
@@ -76,50 +77,65 @@ def main():
 
             st.session_state.messages.append({"role": "assistant", "content": answer})
 
-    # --- MODE: RULE GENERATION ---
+# --- Update the Rule Generation section in app.py ---
+
     elif app_mode == "Rule Generation":
         st.subheader("Intelligent Rule Generator & Compliance Auditor")
-        st.caption("Generate organizational rules backed by your document database (National/Local Laws).")
-
-        # Sidebar inputs for Rule Generation specifics
+        
         with st.sidebar:
             st.divider()
             st.markdown("### Rule Parameters")
-            rule_context = st.text_input("Organization/Context Type", value="IT Organization", help="E.g., IT Company, Factory, Hospital")
-            custom_rules_input = st.text_area("Custom Rules / Desires", height=150, placeholder="E.g., We want flexible working hours, remote work options, but strict data security.")
-            generate_btn = st.button("Generate & Check Compliance")
+            
+            # 1. Dropdown for Industry Types
+            industry_options = list(config.INDUSTRY_MANDATORY_RULES.keys())
+            rule_context = st.selectbox(
+                "Organization Type", 
+                options=industry_options,
+                help="Select the industry to apply mandatory legal templates."
+            )
+            
+            custom_rules_input = st.text_area(
+                "Custom Rules / Desires", 
+                height=150, 
+                placeholder="E.g., We want flexible working hours and remote work options."
+            )
+            generate_btn = st.button("Generate Rule Book")
 
         if generate_btn:
-            if not rule_context or not custom_rules_input:
-                st.warning("Please fill in both the Organization Type and Custom Rules.")
+            if not custom_rules_input:
+                st.warning("Please provide some custom rules or desires.")
             else:
-                with st.spinner("Retrieving laws, drafting rules, and checking compliance..."):
-                    # Call the new function in rag_query.py
+                with st.spinner("Analyzing laws and drafting Rule Book..."):
                     generated_rules, compliance_report, source_docs = generate_compliant_rules(
                         rule_context, 
                         custom_rules_input
                     )
 
-                # Layout: 2 Columns (Rules vs Compliance)
-                col1, col2 = st.columns([1, 1])
+                # Layout
+                col1, col2 = st.columns([1.2, 0.8])
 
                 with col1:
-                    st.success("Drafted Rules")
+                    st.success(f"📜 {rule_context} Rule Book")
                     st.markdown(generated_rules)
+                    
+                    # 5. Download Option
+                    st.download_button(
+                        label="Download Rule Book (Markdown)",
+                        data=generated_rules,
+                        file_name=f"{rule_context.replace(' ', '_')}_Rules.md",
+                        mime="text/markdown"
+                    )
 
                 with col2:
-                    st.error("Compliance Audit Report")
+                    st.error("Compliance Audit")
                     st.markdown(compliance_report)
                 
-                # Show Sources Used
+                # Sources
                 st.divider()
-                with st.expander("View Referenced Legal Context (Source Data)"):
-                    if source_docs:
-                        for i, d in enumerate(source_docs):
-                            st.markdown(f"**Source {i+1} (Page {d['page']})**")
-                            st.info(d["content"])
-                    else:
-                        st.write("No specific laws were found to reference.")
-
+                with st.expander("View Referenced Legal Context"):
+                    for i, d in enumerate(source_docs):
+                        st.markdown(f"**Source {i+1} (Page {d['page']})**")
+                        st.info(d["content"])
+                        
 if __name__ == "__main__":
     main()

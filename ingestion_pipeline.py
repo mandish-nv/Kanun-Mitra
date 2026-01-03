@@ -42,26 +42,26 @@ def ingest_documents_to_qdrant(pdf_path):
 
     # 4. Prepare Qdrant Collection
     try:
-        if client.collection_exists(collection_name=config.COLLECTION_NAME):
-            client.delete_collection(collection_name=config.COLLECTION_NAME)
-            st.info(f"Recreating collection '{config.COLLECTION_NAME}'...")
+        # if client.collection_exists(collection_name=config.COLLECTION_NAME):
+        #     client.delete_collection(collection_name=config.COLLECTION_NAME)
+        #     st.info(f"Recreating collection '{config.COLLECTION_NAME}'...")
         
-        client.create_collection(
-            collection_name=config.COLLECTION_NAME,
-            vectors_config={
-                config.DENSE_VECTOR_NAME: models.VectorParams(
-                    size=config.VECTOR_SIZE,
-                    distance=models.Distance.COSINE,
-                )
-            },
-            sparse_vectors_config={
-                config.SPARSE_VECTOR_NAME: models.SparseVectorParams(
-                    index=models.SparseIndexParams(
-                        on_disk=False,
-                    )
-                )
-            }
-        )
+        # client.create_collection(
+        #     collection_name=config.COLLECTION_NAME,
+        #     vectors_config={
+        #         config.DENSE_VECTOR_NAME: models.VectorParams(
+        #             size=config.VECTOR_SIZE,
+        #             distance=models.Distance.COSINE,
+        #         )
+        #     },
+        #     sparse_vectors_config={
+        #         config.SPARSE_VECTOR_NAME: models.SparseVectorParams(
+        #             index=models.SparseIndexParams(
+        #                 on_disk=False,
+        #             )
+        #         )
+        #     }
+        # )
 
         # Indexing 'page_number' for fast filtering
         client.create_payload_index(
