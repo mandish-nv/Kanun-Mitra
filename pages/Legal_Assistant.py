@@ -1,5 +1,8 @@
 import streamlit as st
 from rag_graph import run_rag_with_graph
+from utils.ui_components import init_page
+
+user_info = init_page("Legal Assistant")
 
 st.set_page_config(page_title="Legal Assistant", layout="wide")
 

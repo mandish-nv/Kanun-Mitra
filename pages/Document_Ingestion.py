@@ -2,8 +2,9 @@ import streamlit as st
 import tempfile
 import os
 from ingestion_pipeline import ingest_documents_to_qdrant
+from utils.ui_components import init_page
 
-from utils.auth import Authentication
+user_info = init_page("Document Ingestion")
 
 st.set_page_config(page_title="Document Ingestion")
 

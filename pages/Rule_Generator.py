@@ -1,6 +1,9 @@
 import streamlit as st
 from rag_query import generate_compliant_rules
 import config
+from utils.ui_components import init_page
+
+user_info = init_page("Rule Generator")
 
 st.set_page_config(page_title="Rule Generator", layout="wide")
 
