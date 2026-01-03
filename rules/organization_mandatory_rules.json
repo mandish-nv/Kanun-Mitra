@@ -1,0 +1,122 @@
+{
+  "industry_specific_compliance_nepal": {
+    "organization_types": [
+      {
+        "type": "IT and Software Companies",
+        "mandatory_acts": [
+          {
+            "act_name": "Electronic Transactions Act, 2063 (2008)",
+            "mandatory_inclusions": [
+              "Legal recognition and security of electronic records and digital signatures.",
+              "Compliance with data integrity and preventing unauthorized access to computer systems.",
+              "Adherence to regulations regarding the creation and use of digital certificates.",
+              "Prohibitions against computer-related crimes (hacking, source code alteration, and data theft)."
+            ]
+          },
+          {
+            "act_name": "Individual Privacy Act, 2075 (2018)",
+            "mandatory_inclusions": [
+              "Mandatory consent for collecting and processing personal data of users or employees.",
+              "Implementation of technical measures (encryption, access controls) to protect personal information.",
+              "Strict protocols for cross-border data transfer and data subject rights.",
+              "Confidentiality of sensitive personal data including health and financial records."
+            ]
+          }
+        ],
+        "regulatory_bodies": ["Office of the Controller of Certification (OCC)", "Ministry of Communication and Information Technology"]
+      },
+      {
+        "type": "Banking and Financial Institutions (BFIs)",
+        "mandatory_acts": [
+          {
+            "act_name": "Banks and Financial Institutions Act (BAFIA), 2073 (2017)",
+            "mandatory_inclusions": [
+              "Mandatory incorporation as a public limited company.",
+              "Strict corporate governance and fiduciary duties of Directors as per NRB standards.",
+              "Compliance with capital adequacy ratios and statutory reserve requirements.",
+              "Maintenance of banking secrecy and protection of depositor rights."
+            ]
+          },
+          {
+            "act_name": "Nepal Rastra Bank (NRB) Unified Directives",
+            "mandatory_inclusions": [
+              "Compliance with Anti-Money Laundering (AML) and Combating the Financing of Terrorism (CFT) reporting.",
+              "Submission of monthly/quarterly financial stability reports to the Central Bank.",
+              "Adherence to Know Your Customer (KYC) norms and risk management frameworks."
+            ]
+          }
+        ],
+        "regulatory_bodies": ["Nepal Rastra Bank (NRB)", "Financial Information Unit (FIU-Nepal)"]
+      },
+      {
+        "type": "NGOs and INGOs (Non-Profit)",
+        "mandatory_acts": [
+          {
+            "act_name": "Social Welfare Act, 2049 (1992)",
+            "mandatory_inclusions": [
+              "Affiliation with the Social Welfare Council (SWC) to receive foreign funding.",
+              "Requirement for INGOs to enter into General and Project Agreements with the SWC.",
+              "Submission of annual progress reports and audited financial statements to the SWC.",
+              "Limit on administrative expenses (usually capped at 20% of the total project budget)."
+            ]
+          },
+          {
+            "act_name": "Associations Registration Act, 2034 (1977)",
+            "mandatory_inclusions": [
+              "Annual renewal of registration at the District Administration Office (DAO).",
+              "Mandatory submission of the organization's constitution and list of executive committee members.",
+              "Prohibition of engaging in political activities or profit-making unrelated to objectives."
+            ]
+          }
+        ],
+        "regulatory_bodies": ["Social Welfare Council (SWC)", "Ministry of Home Affairs (District Administration Offices)"]
+      },
+      {
+        "type": "Healthcare and Hospitals",
+        "mandatory_acts": [
+          {
+            "act_name": "Public Health Service Act, 2075 (2018) and Rules, 2077",
+            "mandatory_inclusions": [
+              "Obligation to provide 24-hour emergency services and basic health services to citizens.",
+              "Obtaining informed consent from patients before medical procedures.",
+              "Compliance with the Health Institution Operation Standards regarding infrastructure and equipment.",
+              "Proper management and disposal of biomedical waste as per environmental norms."
+            ]
+          },
+          {
+            "act_name": "Nepal Medical Council Act, 2020 (1964)",
+            "mandatory_inclusions": [
+              "Verification that all practicing physicians have valid NMC registration.",
+              "Adherence to the Professional Code of Conduct for medical practitioners.",
+              "Mandatory reporting of notifiable diseases to government authorities."
+            ]
+          }
+        ],
+        "regulatory_bodies": ["Ministry of Health and Population (MoHP)", "Nepal Medical Council (NMC)", "Department of Health Services"]
+      },
+      {
+        "type": "Educational Institutions (Schools/Colleges)",
+        "mandatory_acts": [
+          {
+            "act_name": "Education Act, 2028 (1971) and Education Rules, 2059",
+            "mandatory_inclusions": [
+              "Compliance with national curriculum standards and standardized examination procedures.",
+              "Regulation of tuition fees and approval of fee structures by local authorities.",
+              "Prohibition of physical or psychological punishment of students.",
+              "Provision of mandatory scholarships (usually 10%) for marginalized or deserving students."
+            ]
+          },
+          {
+            "act_name": "Compulsory and Free Education Act, 2075 (2018)",
+            "mandatory_inclusions": [
+              "Ensuring the right to free and compulsory basic education (grades 1-8).",
+              "Prohibition of enrollment fees for basic education in government-funded or regulated tracks.",
+              "Mandatory school enrollment for children within the specified age group."
+            ]
+          }
+        ],
+        "regulatory_bodies": ["Ministry of Education, Science and Technology", "Center for Education and Human Resource Development (CEHRD)", "Local Municipalities"]
+      }
+    ]
+  }
+}

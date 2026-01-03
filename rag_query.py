@@ -301,3 +301,87 @@ def query_qdrant_rag(user_query: str, chat_history: list, refined_queries: List[
     except Exception as e:
         logging.error(f"LLM Generation Failed after retries: {e}")
         return "I encountered an error generating the answer due to high server load. Please try again in a moment.", final_docs
+
+
+# ---------------- NEW RULE GENERATION FUNCTION ----------------
+# --- Update this function in rag_query.py ---
+
+def generate_compliant_rules(rule_context_key: str, custom_rules: str) -> Tuple[str, str, List[Dict]]:
+    """
+    1. Refines query using industry mandatory rules.
+    2. Retrieves laws via Hybrid Search.
+    3. Generates a structured Rule Book.
+    """
+    dense_model = config.get_dense_model()
+    sparse_model = config.get_sparse_model()
+    client_qdrant = config.get_qdrant_client()
+
+    # Get Industry Specific Mandates from config
+    industry_info = config.INDUSTRY_MANDATORY_RULES.get(rule_context_key, {})
+    mandatory_text = ", ".join(industry_info.get("mandates", []))
+    acts_text = ", ".join(industry_info.get("acts", []))
+
+    # 1. Refine the Query for Vector Search
+    # This combines context, mandatory rules, and user desires for high-intent retrieval
+    refined_search_query = (
+        f"Laws and regulations for {rule_context_key} regarding: {acts_text}. "
+        f"Specific requirements: {mandatory_text}. User needs: {custom_rules}"
+    )
+    
+    # 2. Retrieval
+    raw_docs = perform_hybrid_search(refined_search_query, client_qdrant, dense_model, sparse_model)
+    final_docs = rerank_documents(refined_search_query, raw_docs, top_k=15)
+    
+    if not final_docs:
+        return "Could not find relevant laws in the database.", "N/A", []
+
+    legal_context_str = "\n".join([f"[Page {d['page']}]: {d['content']}" for d in final_docs])
+
+    # 3. Rule Generation (Structured Rule Book)
+    gen_prompt = f"""
+    LEGAL CONTEXT (from database):
+    {legal_context_str}
+
+    ORGANIZATION TYPE: {rule_context_key}
+    MANDATORY INDUSTRY RULES TO INCLUDE: {mandatory_text}
+    USER CUSTOM DESIRES: {custom_rules}
+    
+    TASK: Generate a structured Rule Book following the Article/Chapter format.
+    """
+
+    def _gen_rules_call():
+        return client.models.generate_content(
+            model=config.LLM_MODEL,
+            contents=gen_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=config.RULE_GENERATION_PROMPT,
+                temperature=0.3
+            )
+        )
+
+    try:
+        rule_response = _execute_with_retry(_gen_rules_call)
+        generated_rules = rule_response.text
+    except Exception as e:
+        return f"Error generating rules: {e}", "", final_docs
+
+    # 4. Compliance Audit
+    audit_prompt = f"LEGAL CONTEXT:\n{legal_context_str}\n\nDRAFTED RULE BOOK:\n{generated_rules}"
+    
+    def _audit_call():
+        return client.models.generate_content(
+            model=config.LLM_MODEL,
+            contents=audit_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=config.COMPLIANCE_CHECK_PROMPT,
+                temperature=0.1 
+            )
+        )
+
+    try:
+        audit_response = _execute_with_retry(_audit_call)
+        compliance_report = audit_response.text
+    except Exception as e:
+        compliance_report = f"Audit failed: {e}"
+
+    return generated_rules, compliance_report, final_docs

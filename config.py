@@ -36,7 +36,7 @@ RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 TOP_K_RERANK = 10  # Number of docs to pass to LLM after re-ranking
 
 # ---------------- LLM CONFIG ----------------
-LLM_MODEL = "gemini-2.5-flash" 
+LLM_MODEL = "gemini-2.5-flash-lite" 
 
 # Generation Configs exposed for control
 GEN_CONFIG = {
@@ -71,6 +71,84 @@ You are a helpful assistant that generates search queries to improve retrieval f
 2. Generate EXACTLY 3 specific, keyword-rich search queries that explore different angles of the question.
 3. Output ONLY the 3 new queries, separated by newlines. 
 4. Do not number them or add bullet points. Just the text.
+"""
+
+# --- Add this to config.py ---
+
+# Industry Specific Mandatory Rules (Nepal Context)
+INDUSTRY_MANDATORY_RULES = {
+    "IT and Software Companies": {
+        "acts": ["Electronic Transactions Act, 2063", "Individual Privacy Act, 2075"],
+        "mandates": [
+            "Legal recognition of digital signatures.",
+            "Prevention of hacking and source code alteration.",
+            "Mandatory consent for data collection.",
+            "Technical measures like encryption for data protection."
+        ]
+    },
+    "Banking and Financial Institutions (BFIs)": {
+        "acts": ["Bank and Financial Institutions Act (BAFIA), 2073", "NRB Unified Directives"],
+        "mandates": [
+            "Strict KYC (Know Your Customer) compliance.",
+            "Anti-Money Laundering (AML) protocols.",
+            "Data localization for financial records.",
+            "Regular internal and external audits."
+        ]
+    },
+    "NGOs and INGOs (Non-Profit)": {
+        "acts": ["Social Welfare Act, 2049", "Associations Registration Act, 2034"],
+        "mandates": [
+            "Project approval from the Social Welfare Council (SWC).",
+            "Transparency in foreign funding sources.",
+            "Periodic reporting on social impact and fund utilization.",
+            "Adherence to tax-exempt status requirements."
+        ]
+    },
+    "Healthcare and Hospitals": {
+        "acts": ["Public Health Service Act, 2075", "Nepal Medical Council Act"],
+        "mandates": [
+            "Patient data confidentiality and medical record privacy.",
+            "Emergency care provision requirements.",
+            "Waste management and biohazard protocols.",
+            "Standard of care and professional liability compliance."
+        ]
+    },
+    "Educational Institutions (Schools/Colleges)": {
+        "acts": ["Education Act, 2028", "National Curriculum Framework"],
+        "mandates": [
+            "Safety and security protocols for students.",
+            "Strict anti-harassment and bullying policies.",
+            "Compliance with teacher-student ratio norms.",
+            "Financial transparency regarding fee structures."
+        ]
+    }
+}
+
+# Update the Prompt for "Rule Book" formatting
+RULE_GENERATION_PROMPT = """
+You are a **Policy & Compliance Architect**. Your task is to draft a comprehensive **Organizational Rule Book**.
+
+### Structure Requirements:
+1. **Title:** Clear Rule Book Title for the Organization.
+2. **Introduction:** Scope and Purpose.
+3. **Chapters/Sections:** Organize rules into logical chapters (e.g., Data Security, Employee Conduct, Legal Compliance).
+4. **Article Format:** Use "Article X.X: [Rule Name]" for individual rules.
+5. **Citations:** Every rule derived from the Legal Context MUST include an inline citation (e.g., [Page X]).
+
+### Synthesis Logic:
+- Integrate the `User Custom Rules` into the appropriate chapters.
+- Ensure all `Mandatory Industry Rules` provided are addressed.
+- Prioritize Law over Custom Desires if a conflict exists.
+"""
+
+COMPLIANCE_CHECK_PROMPT = """
+You are a **Strict Compliance Auditor**.
+1.  Review the `Drafted Rules` provided above.
+2.  Compare them against the `Legal Context` (the laws retrieved from the database).
+3.  **Identify Violations:** Flag any rule that contradicts the laws.
+4.  **Identify Gaps:** Point out if a mandatory legal requirement from the context is missing from the draft.
+5.  **Verdict:** Provide a final status: "✅ Compliant", "⚠️ Minor Issues", or "❌ Non-Compliant".
+6.  **Output:** A concise audit report.
 """
 
 # ---------------- CACHED RESOURCES ----------------

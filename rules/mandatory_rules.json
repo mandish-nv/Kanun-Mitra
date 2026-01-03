@@ -1,0 +1,100 @@
+{
+  "organization_compliance_framework_nepal": {
+    "mandatory_acts": [
+      {
+        "act_name": "Labour Act, 2074 (2017) and Labour Rules, 2075",
+        "mandatory_inclusions": [
+          "Working hours and overtime rules as per Labour Act and Rules.",
+          "Minimum wage compliance and classification of different employment types (full-time, part-time, temporary).",
+          "Leave entitlements: annual leave, sick leave, maternity leave, paternity leave, public holidays and festival leave.",
+          "Maternity leave: 98 days with specified paid/non-paid provisions. :contentReference[oaicite:0]{index=0}",
+          "Provision of insurance (medical and accidental) as required under the Act. :contentReference[oaicite:1]{index=1}",
+          "Employment contracts, probation period documentation and termination conditions.",
+          "Disciplinary procedures and documented cause for termination, including performance vs. misconduct protocols.",
+          "Prevention of discrimination and sexual harassment in the workplace (Labour Act Section 132 prohibits harassment). :contentReference[oaicite:2]{index=2}",
+          "Labour audit compliance, reporting to local labour authorities and records maintenance. :contentReference[oaicite:3]{index=3}"
+        ]
+      },
+      {
+        "act_name": "Contribution-Based Social Security Act, 2074 (2018) and Social Security Act, 2075",
+        "mandatory_inclusions": [
+          "Mandatory registration of employers and all eligible employees in the Social Security Fund (SSF). :contentReference[oaicite:4]{index=4}",
+          "Contribution obligations: employer and employee contribution rates as prescribed by SSF (typically 20% employer + 11% employee though subject to regulation specifics). :contentReference[oaicite:5]{index=5}",
+          "Explanation of entitlements (health, maternity, disability, old age, medical treatment plans). :contentReference[oaicite:6]{index=6}",
+          "Procedures for contributions reporting and remittance frequency."
+        ]
+      },
+      {
+        "act_name": "Companies Act, 2063 (2006) with 2026 Amendments",
+        "mandatory_inclusions": [
+          "Corporate governance protocols including Board meeting minutes and Annual General Meeting (AGM) procedures.",
+          "Statutory audit requirements and appointment of licensed auditors.",
+          "Maintenance of statutory registers (e.g., share register, director register) and minute books.",
+          "Conflict of interest disclosure requirements for directors and key management personnel.",
+          "Employee Share Plans (if applicable) and related reporting rules."
+        ]
+      },
+      {
+        "act_name": "Bonus Act, 2030 (1974) and Bonus Rules, 2039",
+        "mandatory_inclusions": [
+          "Requirement for profitable enterprises to allocate at least 10% of annual net profits for employee bonus distribution. :contentReference[oaicite:7]{index=7}",
+          "Eligibility criteria for employees (e.g., minimum period worked in fiscal year). :contentReference[oaicite:8]{index=8}",
+          "Timing and procedure for bonus distribution within specified period after year end. :contentReference[oaicite:9]{index=9}",
+          "Record-keeping requirements for bonus computation and accounts. :contentReference[oaicite:10]{index=10}"
+        ]
+      },
+      {
+        "act_name": "Income Tax Act, 2058 (2002)",
+        "mandatory_inclusions": [
+          "Tax Deduction at Source (TDS) obligations on salaries and other payments.",
+          "Employer obligation to maintain tax-compliant financial records and supporting documents for five years or as prescribed.",
+          "Procedures and deadlines for filing annual corporate and payroll tax returns.",
+          "Documentation of employee withholding and remittance to the Inland Revenue Department."
+        ]
+      },
+      {
+        "act_name": "Sexual Harassment at Workplace (Prevention) Act, 2071 (2014) and related rules",
+        "mandatory_inclusions": [
+          "Definition of sexual harassment and prohibited acts in the workplace under the Act. :contentReference[oaicite:11]{index=11}",
+          "Internal complaint investigation mechanism and committee formation (internal redressal body). :contentReference[oaicite:12]{index=12}",
+          "Confidentiality obligations for complainants and witnesses.",
+          "Time limits and procedures for filing and resolving complaints. :contentReference[oaicite:13]{index=13}",
+          "Reporting requirements to external authorities or district officers where required."
+        ]
+      },
+      {
+        "act_name": "Trade Union Act, 2049 and Trade Union Rules, 2050",
+        "mandatory_inclusions": [
+          "Rights of employees to form and join trade unions.",
+          "Employer obligations regarding trade union recognition and election procedures. :contentReference[oaicite:14]{index=14}",
+          "Collective bargaining and dispute resolution processes."
+        ]
+      }
+    ],
+    "regulatory_bodies": [
+      "Department of Labour and Occupational Safety (Ministry of Labour, Employment and Social Security). :contentReference[oaicite:15]{index=15}",
+      "Social Security Fund (SSF) Office. :contentReference[oaicite:16]{index=16}",
+      "Office of the Company Registrar (OCR).",
+      "Inland Revenue Department (IRD).",
+      "Labour Courts and District Labour Offices."
+    ],
+    "additional_recommended_policies": [
+      {
+        "policy_name": "Code of Conduct and Ethics",
+        "purpose": "Defines ethical behavior expectations, conflict of interest, anti-corruption protocols and disciplinary code."
+      },
+      {
+        "policy_name": "Grievance Redressal Procedures",
+        "purpose": "Internal procedures for employees to file grievances related to workplace issues outside statutory complaint mechanisms."
+      },
+      {
+        "policy_name": "Occupational Safety and Health Policy",
+        "purpose": "Defines workplace safety standards and compliance with health and safety provisions under labour regulations."
+      },
+      {
+        "policy_name": "Data Protection and Privacy Policy",
+        "purpose": "Internal protocols for protecting employee data in compliance with applicable data protection norms."
+      }
+    ]
+  }
+}
