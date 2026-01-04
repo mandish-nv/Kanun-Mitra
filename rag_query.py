@@ -332,7 +332,7 @@ def generate_compliant_rules(rule_context_key: str, custom_rules: str) -> Tuple[
     )
     
     # 2. Retrieval
-    raw_docs = perform_hybrid_search(refined_search_query, client_qdrant, dense_model, sparse_model)
+    raw_docs = perform_hybrid_search(refined_search_query, client_qdrant, dense_model, sparse_model, collection_name=config.COLLECTION_NAME)
     final_docs = rerank_documents(refined_search_query, raw_docs, top_k=15)
     
     if not final_docs:

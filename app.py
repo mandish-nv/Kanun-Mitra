@@ -51,7 +51,7 @@ def main():
 
     with left_col:
         try:
-            st.image("images/RobotLaw.png", width=450)
+            st.image("images/RobotLaw.png", width=580)
         except:
             st.info("Legal AI System Ready")
 
