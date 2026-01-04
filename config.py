@@ -37,7 +37,7 @@ RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 TOP_K_RERANK = 10  # Number of docs to pass to LLM after re-ranking
 
 # ---------------- LLM CONFIG ----------------
-LLM_MODEL = "gemini-2.5-flash" 
+LLM_MODEL = "gemini-2.5-flash-lite" 
 
 # Generation Configs exposed for control
 GEN_CONFIG = {

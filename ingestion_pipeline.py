@@ -133,6 +133,23 @@ import pymupdf4llm
 from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
 from qdrant_client import models
 import config
+import re
+
+def extract_filename_from_markdown(md_content: str, fallback_name: str) -> str:
+    """
+    Extracts the first Markdown H1 (# ...) as filename.
+    Falls back to original filename if not found.
+    """
+    for line in md_content.splitlines():
+        line = line.strip()
+        if line.startswith("# "):
+            title = line[2:].strip()
+            # Sanitize filename
+            title = re.sub(r'[\\/*?:"<>|]', "", title)
+            title = re.sub(r"\s+", "_", title)
+            return f"{title}.pdf"
+    return fallback_name
+
 
 def ingest_documents_to_qdrant(pdf_files, user_role="user"):
     # 1. Determine Collection Name based on Role
@@ -188,6 +205,10 @@ def ingest_documents_to_qdrant(pdf_files, user_role="user"):
         actual_filename =pdffile_obj.name if hasattr(pdffile_obj, 'name') else "document.pdf"
         try:
             md_content = pymupdf4llm.to_markdown(pdffile_obj)
+            # actual_filename = extract_filename_from_markdown(
+            # md_content=md_content,
+            # fallback_name=pdffile_obj.name
+            # )
             md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=[("#", "legal_act_name"), ("##", "section_name")])
             md_header_splits = md_splitter.split_text(md_content)
             
