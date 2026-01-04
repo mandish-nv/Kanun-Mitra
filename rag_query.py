@@ -161,6 +161,7 @@ def perform_hybrid_search(
         for point in results.points:
             docs.append({
                 "chunk": point.payload.get("chunk", ""),
+                "legal_act_name":point.payload.get("legal_act_name","Nepal Act"),
                 "page_number": point.payload.get("page_number", "?"),
                 "score": point.score, 
                 "id": point.id
@@ -276,7 +277,7 @@ def query_qdrant_rag(user_query: str, chat_history: list, refined_queries: List[
     # 5. Construct Context
     context_parts = []
     for d in final_docs:
-        context_parts.append(f"[Page {d['page_number']}]: {d['chunk']}")
+        context_parts.append(f"[Source: {d['legal_act_name']}]: {d['chunk']}")
     
     full_context = "\n\n".join(context_parts)
     print(f"\n\n\nFULL_CONTEXT:\n{full_context}\n\n\n")
@@ -338,7 +339,7 @@ def generate_compliant_rules(rule_context_key: str, custom_rules: str) -> Tuple[
     if not final_docs:
         return "Could not find relevant laws in the database.", "N/A", []
 
-    legal_context_str = "\n".join([f"[Page {d['page_number']}]: {d['chunk']}" for d in final_docs])
+    legal_context_str = "\n".join([f"[Source: {d['legal_act_name']}]: {d['chunk']}" for d in final_docs])
 
     # 3. Rule Generation (Structured Rule Book)
     gen_prompt = f"""
